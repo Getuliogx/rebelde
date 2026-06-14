@@ -37,10 +37,10 @@ function sortearRebelde() {
   }
 
   if (descricao) {
-    return `Seu personagem de Rebelde é: ${nome} — ${descricao}`;
+    return `Voce é: ${nome} — ${descricao}`;
   }
 
-  return `Seu personagem de Rebelde é: ${nome}`;
+  return `Você é: ${nome}`;
 }
 
 app.get("/", (req, res) => {
