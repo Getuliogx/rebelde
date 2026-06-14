@@ -5,9 +5,10 @@ const path = require("path");
 const app = express();
 
 function carregarLista() {
-  const arquivo = path.join(__dirname, "origens.txt");
+  const arquivo = path.join(__dirname, "rebelde.txt");
 
   if (!fs.existsSync(arquivo)) {
+    console.error("Arquivo rebelde.txt não encontrado.");
     return [];
   }
 
@@ -18,46 +19,42 @@ function carregarLista() {
     .filter(linha => linha && !linha.startsWith("#"));
 }
 
-app.get("/", (req, res) => {
-  res.type("text/plain").send("API !origem online");
-});
-
-app.get("/rebelde", (req, res) => {
-  const arquivo = path.join(__dirname, "rebelde.txt");
-
-  if (!fs.existsSync(arquivo)) {
-    return res
-      .type("text/plain")
-      .send("A lista de Rebelde não foi encontrada.");
-  }
-
-  const lista = fs
-    .readFileSync(arquivo, "utf8")
-    .split(/\r?\n/)
-    .map(linha => linha.trim())
-    .filter(linha => linha && !linha.startsWith("#"));
+function sortearRebelde() {
+  const lista = carregarLista();
 
   if (!lista.length) {
-    return res
-      .type("text/plain")
-      .send("A lista de Rebelde está vazia.");
+    return "A lista de Rebelde está vazia ou o arquivo rebelde.txt não foi encontrado.";
   }
 
   const linha = lista[Math.floor(Math.random() * lista.length)];
   const partes = linha.split("|");
 
-  const nome = partes[0]?.trim();
+  const nome = (partes[0] || "").trim();
   const descricao = partes.slice(1).join("|").trim();
 
-  res.set("Cache-Control", "no-store");
-
-  if (descricao) {
-    return res
-      .type("text/plain")
-      .send(`Você é: ${nome} — ${descricao}`);
+  if (!nome) {
+    return "Erro: personagem sem nome na lista.";
   }
 
-  return res
-    .type("text/plain")
-    .send(`Você é: ${nome}`);
+  if (descricao) {
+    return `Seu personagem de Rebelde é: ${nome} — ${descricao}`;
+  }
+
+  return `Seu personagem de Rebelde é: ${nome}`;
+}
+
+app.get("/", (req, res) => {
+  res.set("Cache-Control", "no-store");
+  res.type("text/plain").send(sortearRebelde());
+});
+
+app.get("/rebelde", (req, res) => {
+  res.set("Cache-Control", "no-store");
+  res.type("text/plain").send(sortearRebelde());
+});
+
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Servidor Rebelde online na porta ${PORT}`);
 });
